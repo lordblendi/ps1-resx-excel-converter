@@ -15,6 +15,13 @@ Path containing the .resx files.
 .PARAMETER Prefix
 Base filename prefix used to identify related .resx files.
 
+.PARAMETER Delimiter
+Delimiter to use in the generated output file.
+
+Supported values: Comma, Semicolon, Tab
+
+Default value: Semicolon
+
 .EXAMPLE
 .\resx-to-csv.ps1 -Path . -Prefix CmStrings
 
@@ -38,7 +45,10 @@ param(
     [string]$Path,
 
     [Parameter(Mandatory)]
-    [string]$Prefix
+    [string]$Prefix,
+
+    [ValidateSet('Comma', 'Semicolon', 'Tab')]
+    [string]$Delimiter = 'Semicolon'
 )
 
 # Get all files
@@ -91,8 +101,19 @@ $rows = foreach ($key in $translations.Keys | Sort-Object) {
     [pscustomobject]$row
 }
 
-$filename = "$Prefix.csv"
+$delimiterChar = switch ($Delimiter) {
+    'Comma'     { ',' }
+    'Semicolon' { ';' }
+    'Tab'       { "`t" }
+}
 
-$rows | Export-Csv $filename -NoTypeInformation -UseCulture -Encoding UTF8
+$filename = if ($Delimiter -eq 'Tab') {
+    "$Prefix.tsv"
+}
+else {
+    "$Prefix.csv"
+}
+
+$rows | Export-Csv $filename -NoTypeInformation -Delimiter $delimiterChar -Encoding UTF8
 
 Write-Output "Translations have been added to $filename."

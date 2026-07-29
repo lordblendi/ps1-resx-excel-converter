@@ -41,6 +41,17 @@ Path containing the `.resx` files.
 
 Base filename prefix used to identify related `.resx` files.
 
+### Delimiter
+Specifies the delimiter used in the generated output file.
+
+Supported values:
+
+- `Semicolon`
+- `Comma`
+- `Tab`
+
+Default: `Semicolon`
+
 ## Examples
 
 ### Convert Labels resources
@@ -68,8 +79,6 @@ Example:
 ```text
 Labels.csv
 ```
-
-The CSV is exported using `-UseCulture` so that Excel correctly opens the file according to the user's regional settings (for example `;` as separator in Hungary and many European countries).
 
 ## CSV Format
 
