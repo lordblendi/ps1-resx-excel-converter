@@ -26,16 +26,16 @@ Default value: Semicolon
 .\resx-to-csv.ps1 -Path . -Prefix CmStrings
 
 Converts all CmStrings*.resx files in the current directory into
-translations.csv.
+CmStrings.csv.
 
 .EXAMPLE
 .\resx-to-csv.ps1 -Path C:\Resources -Prefix BlankSlate
 
 Converts BlankSlate.resx and BlankSlate.<LANG>.resx files found in
-C:\Resources into translations.csv.
+C:\Resources into BlankSlate.csv.
 
 .OUTPUTS
-Creates a file named translations.csv in the current working directory.
+Creates a file named $Prefix.csv in the output working directory.
 
 .NOTES
 The default resource file without a language suffix is interpreted as English (EN).
@@ -114,6 +114,6 @@ else {
     "$Prefix.csv"
 }
 
-$rows | Export-Csv $filename -NoTypeInformation -Delimiter $delimiterChar -Encoding UTF8
+$rows | Export-Csv "output\$filename" -NoTypeInformation -Delimiter $delimiterChar -Encoding UTF8
 
 Write-Output "Translations have been added to $filename."
