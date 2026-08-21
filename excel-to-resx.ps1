@@ -6,10 +6,8 @@ Updates localized .resx files from a CSV file.
 Reads a CSV/TSV file where each row represents a resource key and each
 language is represented by a column.
 
-Updates the corresponding .resx files and creates missing resource
-entries when necessary.
-
-If a translation is missing for a language, the English value is used.
+Updates existing .resx files. Missing translations fall back to the
+English value. Missing language files are skipped.
 
 .PARAMETER File
 Path to the CSV or TSV file.
@@ -28,10 +26,7 @@ Supported values: Comma, Semicolon, Tab
 Default value: Semicolon
 
 .EXAMPLE
-.\excel-to-resx.ps1 -Path ".\Files" -Prefix "YourStrings" -Delimiter "Semicolon" -File .\output\translations.csv
-
-.NOTES
-The default resource file without a language suffix is interpreted as EN.
+.\excel-to-resx.ps1 -Path ".\Files" -Prefix "YourStrings" -Delimiter Semicolon -File .\output\translations.csv
 #>
 
 param(
@@ -59,7 +54,7 @@ Write-Host "Loading translation file..."
 $rows = Import-Csv -Path $File -Delimiter $delimiterChar
 
 if (-not $rows) {
-    throw "No data found in $File"
+    throw "No data found in '$File'."
 }
 
 $languages = $rows[0].PSObject.Properties.Name |
@@ -68,21 +63,23 @@ $languages = $rows[0].PSObject.Properties.Name |
 Write-Host "Languages found: $($languages -join ', ')"
 
 foreach ($lang in $languages) {
-    $langCode = $lang.Substring(0,1).ToUpper() + $lang.Substring(1).ToLower()
-    $fileWithLangCode = Join-Path $Path "$Prefix$langCode.resx"
-    $defaultFile = Join-Path $Path "$Prefix.resx"
 
-    $resxFile = if (($lang -eq 'EN') -and (Test-Path $defaultFile)) {
-            $defaultFile
+    $langCode = $lang.Substring(0,1).ToUpper() + $lang.Substring(1).ToLower()
+
+    $defaultFile = Join-Path $Path "$Prefix.resx"
+    $languageFile = Join-Path $Path "$Prefix$langCode.resx"
+
+    $resxFile = if ($lang -eq 'EN' -and (Test-Path $defaultFile)) {
+        $defaultFile
     }
     else {
-        $fileWithLangCode
+        $languageFile
     }
 
     Write-Host "Processing $resxFile"
 
     if (-not (Test-Path $resxFile)) {
-        Write-Host "Skipping $resxFile (file not found)"
+        Write-Host "Skipping '$resxFile' (file not found)"
         continue
     }
 
@@ -115,7 +112,8 @@ foreach ($lang in $languages) {
             }
         }
         else {
-            Write-Host "Creating node for $key"
+
+            Write-Host "Adding missing key '$key'"
 
             $dataNode = $resx.CreateElement("data")
             $dataNode.SetAttribute("name", $key)
